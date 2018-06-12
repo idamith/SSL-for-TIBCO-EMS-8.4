@@ -1,37 +1,86 @@
-## Welcome to GitHub Pages
+## POC on enable SSL\TLS for JMS (Tibco EMS)
 
-You can use the [editor on GitHub](https://github.com/idotrick/SSL-for-TIBCO-EMS-8.4/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+This POC is to prove the ability of implementing SSL for those JMS services with Tibco EMS 8.4
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+# Prerequisites & limitations
 
-### Markdown
+Note: this document address only one-way SSL. 
+Trust store password has left plain for this demo purpose however, it should be encrypted before release to production.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+Prerequisites: 
+•	Upgrade current Tibco EMS Simulator to 8.3 or above
+•	Prepare JMS Server certificate
+•	Set up SSL in Tibco EMS Simulator
+•	Set up SSLQueueConnectionFactory on Tibco EMS Simulator 
+•	Verify Tibco EMS Simulator SSL URL and port is accessible from client machine
+•	Upgrade Tibco Client Java to Java 8
+•	Upgrade Tibco Client tibjms.jar to 8.3 or above
+•	Upgrade Tibco Client to JMS 2.0
+•	Prepare Trust Store (JKS). Ensure server root certificate is in trust store.
 
-```markdown
-Syntax highlighted code block
+# Implementation 
 
-# Header 1
-## Header 2
-### Header 3
+Upgrade current Tibco EMS Simulator to 8.3 or above
 
-- Bulleted
-- List
+Download an install latest Tibco EMS Server. At the moment this document is written, version is 8.4.
+Click [here](https://www.tibco.com/resources/product-download/tibco-enterprise-message-service-community-edition-free-download-windows) for download latest TIBCO EMS for Windows.
+Click [here](https://docs.tibco.com/products/tibco-enterprise-message-service) for TIBCO EMS documentations.
 
-1. Numbered
-2. List
+# Prepare JMS Server certificate
 
-**Bold** and _Italic_ and `Code` text
+For simulation purpose those sample certs come with TIBCO EMS installation shall be used. Those certs are located at %TIBCO_HOME%\ ems\8.4\samples\certs
 
-[Link](url) and ![Image](src)
-```
+# Set up SSL in Tibco EMS Simulator
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+Set up to be done in the file %TIBCO_HOME%\ ems\8.4\bin\tibemsd.conf
 
-### Jekyll Themes
+[IMAGE]
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/idotrick/SSL-for-TIBCO-EMS-8.4/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+# Set up SSLQueueConnectionFactory on Tibco EMS Simulator 
 
-### Support or Contact
+Set up to be done in the file %TIBCO_HOME%\ ems\8.4\bin\factories.conf
 
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+[IMAGE]
+
+# Verify Tibco EMS Simulator SSL URL and port is accessible from client machine
+
+Check the accessibility with tibemsadmin.exe located at %EMS_HOME%\bin. Note, this admin should run on the client machine. Let the user name and password be as default.
+
+[IMAGE]
+
+# Java, Tibco & JMS library upgrade
+
+•	Confirm JDK and JRE is Java 8
+•	Remove javax.jms.jar & tibjms.jar from existing classpath
+•	Copy new tibjms.jar, jms-2.0.jar from %EMS_HOME%\lib and add to the classpath
+
+# Prepare Trust Store (JKS). Ensure server root certificate is in trust store.
+
+•	Create empty Trust Store (JKS).
+o	Use following command to create the store: -
+keytool -genkey -alias server-alias -keyalg RSA -keypass changeit -storepass changeit -keystore truststore.jks
+
+o	Use following command to remove default certificate from the truststore: -
+keytool -delete -alias server-alias -keystore truststore.jks
+
+o	Use following command to verify the content of the truststore: -
+keytool -list -keystore truststore.jks
+
+[IMAGE]
+
+•	Ensure server root certificate is in trust store.
+o	Import Tibco EMS server certificate to the truststore. User following command: -
+keytool -import -v -trustcacerts -alias latte-tibco-srv -file %ems_home%\samples\certs\server_root.cert.pem -keystore truststore.jks
+o	Use following command to verify the content of the truststore: -
+keytool -list -keystore truststore.jks
+
+[IMAGE]
+
+
+
+
+
+
+
+
+
